@@ -14296,4 +14296,10 @@
     github = "kuwii";
     githubId = 10705175;
   };
+  ghishadow = {
+      name = "Suraj Ghimire";
+      email = "suraj@ghishadow.com";
+      github = "ghishadow";
+      githubId = 9583775
+    }
 }
