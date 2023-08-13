@@ -125,6 +125,7 @@
 
   # must be lua51Packages
 , luaPackages
+, luajitPackages
 }:
 
 self: super: {
@@ -600,6 +601,24 @@ self: super: {
 
   };
 
+  image-nvim = super.image-nvim.overrideAttrs {
+    dependencies = with self; [
+      nvim-treesitter
+      nvim-treesitter-parsers.markdown_inline
+      nvim-treesitter-parsers.norg
+    ];
+
+    # Add magick to package.path
+    patches = [ ./patches/image-nvim/magick.patch ];
+
+    postPatch = ''
+      substituteInPlace lua/image/magick.lua \
+        --replace @nix_magick@ ${luajitPackages.magick}
+    '';
+
+    nvimRequireCheck = "image";
+  };
+
   jedi-vim = super.jedi-vim.overrideAttrs {
     # checking for python3 support in vim would be neat, too, but nobody else seems to care
     buildInputs = [ python3.pkgs.jedi ];
@@ -947,7 +966,7 @@ self: super: {
         pname = "sg-nvim-rust";
         inherit (old) version src;
 
-        cargoHash = "sha256-MJUEGzV756zWCHGAcdm9uU8DpoX6b1G8C2bRWy4QCfE=";
+        cargoHash = "sha256-cMMNur6QKp87Q28JyCH2IMLE3xDVd7Irg9HvJ2AsnZc=";
 
         nativeBuildInputs = [ pkg-config ];
 
@@ -1075,9 +1094,8 @@ self: super: {
       svedbackend = stdenv.mkDerivation {
         name = "svedbackend-${super.sved.name}";
         inherit (super.sved) src;
-        nativeBuildInputs = [ wrapGAppsHook ];
+        nativeBuildInputs = [ wrapGAppsHook gobject-introspection ];
         buildInputs = [
-          gobject-introspection
           glib
           (python3.withPackages (ps: with ps; [ pygobject3 pynvim dbus-python ]))
         ];
@@ -1439,6 +1457,10 @@ self: super: {
 
   vim-metamath = super.vim-metamath.overrideAttrs {
     preInstall = "cd vim";
+  };
+
+  vim-pluto = super.vim-pluto.overrideAttrs {
+    dependencies = with self; [ denops-vim ];
   };
 
   vim-snipmate = super.vim-snipmate.overrideAttrs {
